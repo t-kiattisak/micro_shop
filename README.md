@@ -33,23 +33,3 @@ microshop/                # Root of the Monorepo
 │── docker-compose.yml    # Docker Compose for Dev Environment
 │── README.md             # Documentation
 ```
-
-## Service Structure Example (Order Service)
-
-```
-order-service/
-│── cmd/                  # Main Entry Point (main.go)
-│── config/               # Environment Configurations
-│── internal/             # Business Logic
-│   │── handlers/         # HTTP Handlers
-│   │── services/         # Business Logic
-│   │── repositories/     # Database Access Layer
-│   │── models/           # Data Models
-│   │── events/           # Kafka / RabbitMQ Event Handlers
-│── proto/                # gRPC Protobuf Definitions
-│── test/                 # Unit & Integration Tests
-│── main.go               # Service Entry Point
-│── Dockerfile            # Docker Build Config
-│── go.mod                # Golang Module
-│── go.sum                # Dependencies Lockfile
-```
