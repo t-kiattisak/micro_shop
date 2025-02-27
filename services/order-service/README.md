@@ -1,18 +1,3 @@
-# Order Service - Microservices
-
-## Overview
-
-Order Service is a microservice responsible for handling orders in the MicroShop system. It follows **Clean Architecture** principles and uses **Golang, Fiber, GORM, and PostgreSQL**.
-
-## Tech Stack
-
-- **Language:** Golang
-- **Framework:** Fiber
-- **Database:** PostgreSQL + GORM
-- **Dependency Management:** Go Modules
-- **Configuration:** `.env` using `godotenv`
-- **Containerization:** Docker
-
 ## Folder Structure
 
 ```
