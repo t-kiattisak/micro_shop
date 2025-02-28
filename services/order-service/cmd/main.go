@@ -28,11 +28,11 @@ func main() {
 		return c.JSON(fiber.Map{"message": "Order Service Running"})
 	})
 
-	app.Get("/orders",
-		func(c *fiber.Ctx) error {
-			return c.JSON(fiber.Map{"message": "Get Order Service Running"})
-		})
 	app.Post("/orders", orderHandler.CreateOrder)
+	app.Get("/orders", orderHandler.GetOrders)
+	app.Get("/orders/:id", orderHandler.GetOrderByID)
+	app.Delete("/orders/:id", orderHandler.DeleteOrderByID)
+	app.Patch("/orders/:id/status", orderHandler.UpdateOrderStatus)
 
 	log.Println("Starting Order Service on port 8081...")
 	log.Fatal(app.Listen(":8081"))
