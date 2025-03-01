@@ -2,21 +2,45 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"order-service/internal/domain"
+	"order-service/internal/grpcclient"
 	"order-service/internal/repository"
 )
 
 type OrderUseCase struct {
-	repo repository.OrderRepository
+	repo            repository.OrderRepository
+	inventoryClient *grpcclient.InventoryClient
 }
 
-func NewOrderUseCase(repo repository.OrderRepository) *OrderUseCase {
-	return &OrderUseCase{repo: repo}
+func NewOrderUseCase(repo repository.OrderRepository, inventoryClient *grpcclient.InventoryClient) *OrderUseCase {
+	return &OrderUseCase{
+		repo:            repo,
+		inventoryClient: inventoryClient,
+	}
 }
 
 func (u *OrderUseCase) CreateOrder(order *domain.Order) error {
+	available, message, err := u.inventoryClient.CheckStock(order.Name, int32(order.Amount))
+	if err != nil {
+		return err
+	}
+	if !available {
+		return fmt.Errorf("cannot create order: %s", message)
+	}
+
 	order.Status = "PENDING"
-	return u.repo.Create(order)
+	err = u.repo.Create(order)
+	if err != nil {
+		return err
+	}
+
+	success, msg, err := u.inventoryClient.ReduceStock(order.Name, int32(order.Amount))
+	if err != nil || !success {
+		return fmt.Errorf("order created, but stock reduction failed: %s", msg)
+	}
+
+	return nil
 }
 
 func (u *OrderUseCase) GetOrders() ([]domain.Order, error) {

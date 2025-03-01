@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "./proto";
+
+service InventoryService {
+    rpc CheckStock (CheckStockRequest) returns (CheckStockResponse);
+    rpc ReduceStock (ReduceStockRequest) returns (ReduceStockResponse);
+}
+
+message CheckStockRequest {
+    string product = 1;
+    int32 quantity = 2;
+}
+
+message CheckStockResponse {
+    bool available = 1;
+    string message = 2;
+}
+
+message ReduceStockRequest {
+    string product = 1;
+    int32 quantity = 2;
+}
+
+message ReduceStockResponse {
+    bool success = 1;
+    string message = 2;
+}
