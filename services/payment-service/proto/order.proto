@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "./proto";
+
+service OrderService {
+    rpc CheckOrderExists (CheckOrderRequest) returns (CheckOrderResponse);
+}
+
+message CheckOrderRequest {
+    uint32 order_id = 1;
+}
+
+message CheckOrderResponse {
+    bool exists = 1;
+}

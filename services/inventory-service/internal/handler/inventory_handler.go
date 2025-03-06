@@ -44,3 +44,22 @@ func (h *InventoryHandler) ReduceStock(c *fiber.Ctx) error {
 
 	return c.JSON(dto.Ok("Stock reduced successfully", nil))
 }
+
+func (h *InventoryHandler) CreateInventory(c *fiber.Ctx) error {
+	type Request struct {
+		Product  string `json:"product"`
+		Quantity int    `json:"quantity"`
+	}
+
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.Err(err.Error()))
+	}
+
+	err := h.usecase.CreateInventory(req.Product, req.Quantity)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.Err(err.Error()))
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(dto.Ok("inventory created", nil))
+}

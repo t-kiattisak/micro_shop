@@ -9,6 +9,7 @@ import (
 type InventoryRepository interface {
 	GetByProduct(product string) (*domain.Inventory, error)
 	Update(inventory *domain.Inventory) error
+	Create(inventory *domain.Inventory) error
 }
 
 type inventoryRepository struct {
@@ -29,5 +30,9 @@ func (r *inventoryRepository) GetByProduct(product string) (*domain.Inventory, e
 }
 
 func (r *inventoryRepository) Update(inventory *domain.Inventory) error {
+	return r.db.Save(inventory).Error
+}
+
+func (r *inventoryRepository) Create(inventory *domain.Inventory) error {
 	return r.db.Save(inventory).Error
 }

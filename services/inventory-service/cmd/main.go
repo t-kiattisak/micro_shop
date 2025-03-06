@@ -49,6 +49,7 @@ func main() {
 	app := fiber.New()
 	handler := handler.NewInventoryHandler(usecase)
 
+	app.Post("/inventory", handler.CreateInventory)
 	app.Get("/inventory/check", handler.CheckStock)
 	app.Post("/inventory/reduce", handler.ReduceStock)
 
