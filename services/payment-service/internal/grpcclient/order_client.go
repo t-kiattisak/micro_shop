@@ -39,3 +39,20 @@ func (c *OrderClient) CheckOrderExists(orderID uint) (bool, error) {
 	}
 	return resp.Exists, nil
 }
+
+func (c *OrderClient) UpdateOrderStatus(orderID uint, status string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := c.client.UpdateOrderStatus(ctx, &proto.UpdateOrderStatusRequest{
+		OrderId: uint32(orderID),
+		Status:  status,
+	})
+	if err != nil {
+		log.Printf("❌ Failed to update order status: %v", err)
+		return err
+	}
+
+	log.Printf("✅ Order %d marked as %s", orderID, status)
+	return nil
+}

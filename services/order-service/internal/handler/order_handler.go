@@ -68,14 +68,21 @@ func (h *OrderHandler) DeleteOrderByID(c *fiber.Ctx) error {
 
 func (h *OrderHandler) UpdateOrderStatus(c *fiber.Ctx) error {
 	idStr := c.Params("id")
-	newStatus := c.FormValue("status")
+
+	var req struct {
+		Status string `json:"status"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.Err("Invalid JSON payload"))
+	}
 
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.Err("Invalid order ID"))
 	}
 
-	if err := h.usecase.UpdateOrderStatus(uint(id), newStatus); err != nil {
+	if err := h.usecase.UpdateOrderStatus(uint(id), req.Status); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.Err(err.Error()))
 	}
 

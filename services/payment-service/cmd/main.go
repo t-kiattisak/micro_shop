@@ -29,6 +29,7 @@ func main() {
 
 	app.Post("/payments", paymentHandler.CreatePayment)
 	app.Get("/payments/:id", paymentHandler.GetPayment)
+	app.Post("/payments/webhook", paymentHandler.PaymentWebhook)
 
 	log.Println("Starting Order Service on port 8081...")
 	log.Fatal(app.Listen(":8083"))

@@ -13,7 +13,6 @@ import (
 func main() {
 	app := fiber.New()
 	db := infrastructure.ConnectDB()
-	db.Exec("SELECT 1")
 
 	log.Println("Running database migration...")
 	err := db.AutoMigrate(&domain.Order{})

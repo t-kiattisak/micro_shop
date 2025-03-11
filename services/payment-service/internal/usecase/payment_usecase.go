@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"log"
 	"payment-service/internal/domain"
 	"payment-service/internal/grpcclient"
 	"payment-service/internal/repository"
@@ -41,14 +42,30 @@ func (uc *PaymentUseCase) GetPayment(id uint) (*domain.Payment, error) {
 	return uc.repo.FindByID(id)
 }
 
-func (uc *PaymentUseCase) UpdatePaymentStatus(id uint, status string) error {
-	payment, err := uc.repo.FindByID(id)
+func (uc *PaymentUseCase) UpdatePaymentStatus(orderID uint, status string) error {
+	payment, err := uc.repo.FindByOrderID(orderID)
 	if err != nil {
 		return err
 	}
-	if payment.Status != "PENDING" {
-		return errors.New("cannot update non-pending payment")
-	}
+
 	payment.Status = status
-	return uc.repo.Update(payment)
+	if err := uc.repo.Update(payment); err != nil {
+		return err
+	}
+
+	if status == "PAID" {
+		go uc.notifyOrderService(orderID)
+	}
+
+	return nil
+}
+
+func (uc *PaymentUseCase) notifyOrderService(orderID uint) {
+	err := uc.orderClient.UpdateOrderStatus(orderID, "PAID")
+
+	if err != nil {
+		log.Printf("❌ Failed to notify order service: %v", err)
+		return
+	}
+	log.Printf("✅ Order %d marked as PAID", orderID)
 }

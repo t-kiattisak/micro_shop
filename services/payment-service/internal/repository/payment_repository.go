@@ -9,6 +9,7 @@ import (
 type PaymentRepository interface {
 	Create(payment *domain.Payment) error
 	FindByID(id uint) (*domain.Payment, error)
+	FindByOrderID(id uint) (*domain.Payment, error)
 	Update(payment *domain.Payment) error
 }
 
@@ -27,6 +28,12 @@ func (r *paymentRepository) Create(payment *domain.Payment) error {
 func (r *paymentRepository) FindByID(id uint) (*domain.Payment, error) {
 	var payment domain.Payment
 	err := r.db.First(&payment, id).Error
+	return &payment, err
+}
+
+func (r *paymentRepository) FindByOrderID(orderID uint) (*domain.Payment, error) {
+	var payment domain.Payment
+	err := r.db.Where("order_id = ?", orderID).First(&payment).Error
 	return &payment, err
 }
 

@@ -6,6 +6,7 @@ option go_package = "./proto";
 
 service OrderService {
     rpc CheckOrderExists (CheckOrderRequest) returns (CheckOrderResponse);
+    rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
 }
 
 message CheckOrderRequest {
@@ -14,4 +15,13 @@ message CheckOrderRequest {
 
 message CheckOrderResponse {
     bool exists = 1;
+}
+
+message UpdateOrderStatusRequest {
+    uint32 order_id = 1;
+    string status = 2;
+}
+
+message UpdateOrderStatusResponse {
+    string message = 1;
 }

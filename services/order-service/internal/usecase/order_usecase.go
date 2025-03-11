@@ -76,3 +76,11 @@ func (u *OrderUseCase) UpdateOrderStatus(id uint, newStatus string) error {
 	order.Status = newStatus
 	return u.repo.Update(order)
 }
+
+func (uc *OrderUseCase) CheckOrderExists(orderID uint) (bool, error) {
+	order, err := uc.repo.GetOrderByID(orderID)
+	if err != nil {
+		return false, err
+	}
+	return order != nil, nil
+}
