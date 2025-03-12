@@ -47,8 +47,9 @@ func (h *InventoryHandler) ReduceStock(c *fiber.Ctx) error {
 
 func (h *InventoryHandler) CreateInventory(c *fiber.Ctx) error {
 	type Request struct {
-		Product  string `json:"product"`
-		Quantity int    `json:"quantity"`
+		Product      string  `json:"product"`
+		Quantity     int     `json:"quantity"`
+		PricePerUnit float64 `json:"pricePerUnit"`
 	}
 
 	var req Request
@@ -56,7 +57,7 @@ func (h *InventoryHandler) CreateInventory(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.Err(err.Error()))
 	}
 
-	err := h.usecase.CreateInventory(req.Product, req.Quantity)
+	err := h.usecase.CreateInventory(req.Product, req.Quantity, req.PricePerUnit)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.Err(err.Error()))
 	}

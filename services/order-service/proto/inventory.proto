@@ -7,6 +7,7 @@ option go_package = "./proto";
 service InventoryService {
     rpc CheckStock (CheckStockRequest) returns (CheckStockResponse);
     rpc ReduceStock (ReduceStockRequest) returns (ReduceStockResponse);
+    rpc GetPrice (GetPriceRequest) returns (GetPriceResponse);
 }
 
 message CheckStockRequest {
@@ -27,4 +28,12 @@ message ReduceStockRequest {
 message ReduceStockResponse {
     bool success = 1;
     string message = 2;
+}
+
+message GetPriceRequest {
+    string product = 1;
+}
+
+message GetPriceResponse {
+    double price = 1;
 }

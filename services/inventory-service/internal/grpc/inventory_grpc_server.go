@@ -42,3 +42,11 @@ func (s *InventoryGRPCServer) ReduceStock(ctx context.Context, req *proto.Reduce
 		Message: "Stock reduced successfully",
 	}, nil
 }
+
+func (s *InventoryGRPCServer) GetPrice(ctx context.Context, req *proto.GetPriceRequest) (*proto.GetPriceResponse, error) {
+	price, err := s.usecase.GetPrice(req.Product)
+	if err != nil {
+		return nil, err
+	}
+	return &proto.GetPriceResponse{Price: price}, nil
+}

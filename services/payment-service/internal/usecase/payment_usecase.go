@@ -69,3 +69,35 @@ func (uc *PaymentUseCase) notifyOrderService(orderID uint) {
 	}
 	log.Printf("✅ Order %d marked as PAID", orderID)
 }
+
+func (uc *PaymentUseCase) ProcessPayment(orderID uint, amount float64) error {
+	exists, err := uc.orderClient.CheckOrderExists(orderID)
+	if err != nil {
+		return fmt.Errorf("failed to verify order: %v", err)
+	}
+	if !exists {
+		return errors.New("order not found")
+	}
+
+	payment, err := uc.repo.FindByOrderID(orderID)
+	if err != nil {
+		payment = &domain.Payment{
+			OrderID: orderID,
+			Amount:  amount,
+			Status:  "PENDING",
+		}
+		err = uc.repo.Create(payment)
+		if err != nil {
+			return fmt.Errorf("failed to create payment record: %v", err)
+		}
+	}
+
+	payment.Status = "PAID"
+	if err := uc.repo.Update(payment); err != nil {
+		return fmt.Errorf("failed to update payment status: %v", err)
+	}
+
+	go uc.notifyOrderService(orderID)
+	log.Printf("Payment for order %d completed successfully!", orderID)
+	return nil
+}

@@ -7,8 +7,10 @@ import (
 	"order-service/internal/grpc"
 	"order-service/internal/grpcclient"
 	"order-service/internal/handler"
+	"order-service/internal/kafka"
 	"order-service/internal/repository"
 	"order-service/internal/usecase"
+	"os"
 
 	"order-service/proto"
 
@@ -19,7 +21,10 @@ func CreateOrderHandler() *handler.OrderHandler {
 	db := infrastructure.ConnectDB()
 	orderRepo := repository.NewOrderRepository(db)
 	inventoryClient := grpcclient.NewInventoryClient()
-	orderUseCase := usecase.NewOrderUseCase(orderRepo, inventoryClient)
+
+	kafkaProducer := kafka.NewKafkaProducer(os.Getenv("KAFKA_BROKER"), "order-events")
+
+	orderUseCase := usecase.NewOrderUseCase(orderRepo, inventoryClient, kafkaProducer)
 
 	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
