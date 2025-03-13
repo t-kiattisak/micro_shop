@@ -61,6 +61,7 @@ func (c *KafkaConsumer) StartConsuming(workerCount int) {
 
 					if err := json.Unmarshal(e.Value, &msg); err != nil {
 						log.Printf("❌ Worker %d failed to parse message: %v", workerID, err)
+						PublishToDLQ("failed-order-events", e.Value)
 						continue
 					}
 
