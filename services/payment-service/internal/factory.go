@@ -21,11 +21,14 @@ func CreatePaymentHandler() *handler.PaymentHandler {
 	}
 	log.Println("✅ Database migration completed successfully!")
 
+	kafkaProducer := kafka.NewKafkaProducer("payment-events")
+
 	paymentRepo := repository.NewPaymentRepository(db)
 	orderClient := grpcclient.NewOrderClient()
-	paymentUseCase := usecase.NewPaymentUseCase(paymentRepo, orderClient)
+	paymentUseCase := usecase.NewPaymentUseCase(paymentRepo, orderClient, kafkaProducer)
 
-	consumer := kafka.NewKafkaConsumer(paymentUseCase)
+	consumerHandler := kafka.NewConsumerHandler(paymentUseCase)
+	consumer := kafka.NewKafkaConsumer(consumerHandler)
 	go consumer.StartConsuming(3)
 
 	return handler.NewPaymentHandler(paymentUseCase)

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,13 +11,15 @@ import (
 )
 
 type PaymentUseCase struct {
-	repo        repository.PaymentRepository
-	orderClient *grpcclient.OrderClient
+	repo           repository.PaymentRepository
+	orderClient    *grpcclient.OrderClient
+	eventPublisher PaymentEventPublisher
 }
 
-func NewPaymentUseCase(repo repository.PaymentRepository, orderClient *grpcclient.OrderClient) *PaymentUseCase {
+func NewPaymentUseCase(repo repository.PaymentRepository, orderClient *grpcclient.OrderClient, eventPublisher PaymentEventPublisher) *PaymentUseCase {
 	return &PaymentUseCase{repo: repo,
-		orderClient: orderClient,
+		orderClient:    orderClient,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -99,5 +102,18 @@ func (uc *PaymentUseCase) ProcessPayment(orderID uint, amount float64) error {
 
 	go uc.notifyOrderService(orderID)
 	log.Printf("Payment for order %d completed successfully!", orderID)
+
+	event := map[string]interface{}{
+		"order_id": orderID,
+		"amount":   amount,
+		"status":   "PAID",
+	}
+	eventBytes, _ := json.Marshal(event)
+
+	err = uc.eventPublisher.PublishMessage("payment-events", string(eventBytes))
+	if err != nil {
+		log.Printf("Failed to send event to Kafka: %v", err)
+	}
+
 	return nil
 }
