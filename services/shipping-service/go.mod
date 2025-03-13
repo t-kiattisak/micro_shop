@@ -14,11 +14,12 @@ require (
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	gorm.io/gorm v1.25.12 // indirect
+	gorm.io/gorm v1.25.12
 )
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.17.9 // indirect
