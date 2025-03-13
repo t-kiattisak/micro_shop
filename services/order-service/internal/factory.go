@@ -10,7 +10,6 @@ import (
 	"order-service/internal/kafka"
 	"order-service/internal/repository"
 	"order-service/internal/usecase"
-	"os"
 
 	"order-service/proto"
 
@@ -22,7 +21,7 @@ func CreateOrderHandler() *handler.OrderHandler {
 	orderRepo := repository.NewOrderRepository(db)
 	inventoryClient := grpcclient.NewInventoryClient()
 
-	kafkaProducer := kafka.NewKafkaProducer(os.Getenv("KAFKA_BROKER"), "order-events")
+	kafkaProducer := kafka.NewKafkaProducer("order-events")
 
 	orderUseCase := usecase.NewOrderUseCase(orderRepo, inventoryClient, kafkaProducer)
 

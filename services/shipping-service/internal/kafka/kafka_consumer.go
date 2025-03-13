@@ -1,10 +1,8 @@
 package kafka
 
 import (
-	"encoding/json"
 	"log"
 	"os"
-	"shipping-service/internal/usecase"
 	"sync"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -12,10 +10,10 @@ import (
 
 type ShippingConsumer struct {
 	Consumer *kafka.Consumer
-	usecase  *usecase.ShippingUseCase
+	handler  *ConsumerHandler
 }
 
-func NewShippingConsumer(usecase *usecase.ShippingUseCase) *ShippingConsumer {
+func NewShippingConsumer(handler *ConsumerHandler) *ShippingConsumer {
 	config := &kafka.ConfigMap{
 		"bootstrap.servers": os.Getenv("KAFKA_BROKER"),
 		"group.id":          "shipping-service",
@@ -28,14 +26,13 @@ func NewShippingConsumer(usecase *usecase.ShippingUseCase) *ShippingConsumer {
 	}
 
 	err = consumer.Subscribe("payment-events", nil)
-
 	if err != nil {
 		log.Fatalf("❌ Failed to subscribe to topic: %v", err)
 	}
 
 	return &ShippingConsumer{
 		Consumer: consumer,
-		usecase:  usecase,
+		handler:  handler,
 	}
 }
 
@@ -52,34 +49,13 @@ func (c *ShippingConsumer) StartConsuming(workerCount int) {
 				event := c.Consumer.Poll(100)
 				switch e := event.(type) {
 				case *kafka.Message:
-					log.Printf("📩 Worker %d received payment event: %s", workerID, string(e.Value))
-
-					var msg struct {
-						OrderID uint   `json:"order_id"`
-						Status  string `json:"status"`
-					}
-
-					if err := json.Unmarshal(e.Value, &msg); err != nil {
-						log.Printf("Worker %d failed to parse message: %v", workerID, err)
-						PublishToDLQ("failed-payment-events", e.Value)
-						continue
-					}
-
-					if msg.Status == "PAID" {
-						log.Printf("🚚 Worker %d creating shipping for order %d", workerID, msg.OrderID)
-						err := c.usecase.CreateShipping(msg.OrderID, "DHL", "TRACK12345")
-						if err != nil {
-							log.Printf("Worker %d failed to create shipping: %v", workerID, err)
-						} else {
-							log.Printf("Worker %d shipping for order %d created successfully!", workerID, msg.OrderID)
-						}
-					}
+					c.handler.HandleMessage(e)
 
 				case kafka.Error:
 					if e.Code() != kafka.ErrTimedOut {
-						log.Printf("Worker %d Kafka error: %v", workerID, e)
+						log.Printf("❌ Worker %d Kafka error: %v", workerID, e)
 					} else {
-						log.Printf("Worker %d waiting for new events...", workerID)
+						log.Printf("⌛ Worker %d waiting for new events...", workerID)
 					}
 				}
 			}

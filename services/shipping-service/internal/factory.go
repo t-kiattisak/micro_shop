@@ -23,7 +23,8 @@ func CreateShippingHandler() *handler.ShippingHandler {
 	shippingRepo := repository.NewShippingRepository(db)
 	shippingUseCase := usecase.NewShippingUseCase(shippingRepo)
 
-	shippingConsumer := kafka.NewShippingConsumer(shippingUseCase)
+	consumerHandler := kafka.NewConsumerHandler(shippingUseCase)
+	shippingConsumer := kafka.NewShippingConsumer(consumerHandler)
 	go shippingConsumer.StartConsuming(3)
 
 	return handler.NewShippingHandler(shippingUseCase)

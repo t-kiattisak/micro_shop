@@ -1,39 +1,55 @@
 package kafka
 
 import (
-	"context"
 	"log"
-	"time"
+	"os"
 
-	"github.com/segmentio/kafka-go"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 type KafkaProducer struct {
-	Writer *kafka.Writer
+	Producer *kafka.Producer
+	Topic    string
 }
 
-func NewKafkaProducer(brokerAddress, topic string) *KafkaProducer {
+func NewKafkaProducer(topic string) *KafkaProducer {
+	broker := os.Getenv("KAFKA_BROKER")
+
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": broker,
+	})
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+	}
+
 	return &KafkaProducer{
-		Writer: &kafka.Writer{
-			Addr:         kafka.TCP(brokerAddress),
-			Topic:        topic,
-			Balancer:     &kafka.LeastBytes{},
-			BatchTimeout: 10 * time.Millisecond,
-		},
+		Producer: producer,
+		Topic:    topic,
 	}
 }
 
-func (p *KafkaProducer) PublishMessage(key, message string) error {
-	err := p.Writer.WriteMessages(context.Background(),
-		kafka.Message{
-			Key:   []byte(key),
-			Value: []byte(message),
-		},
-	)
+func (p *KafkaProducer) PublishMessage(message []byte) error {
+	deliveryChan := make(chan kafka.Event, 1)
+
+	err := p.Producer.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
+		Value:          message,
+	}, deliveryChan)
+
 	if err != nil {
-		log.Printf("❌ Failed to publish message: %v", err)
+		log.Printf("Failed to publish message: %v", err)
 		return err
 	}
-	log.Printf("✅ Published message: %s", message)
+
+	e := <-deliveryChan
+	m := e.(*kafka.Message)
+
+	if m.TopicPartition.Error != nil {
+		log.Printf("Failed to deliver message: %v", m.TopicPartition.Error)
+	} else {
+		log.Printf("Published message to topic: %s", p.Topic)
+	}
+
+	close(deliveryChan)
 	return nil
 }

@@ -64,7 +64,7 @@ func (u *OrderUseCase) CreateOrder(order *domain.Order) error {
 	}
 	eventBytes, _ := json.Marshal(event)
 
-	err = u.kafkaProducer.PublishMessage(fmt.Sprintf("%d", order.ID), string(eventBytes))
+	err = u.kafkaProducer.PublishMessage(eventBytes)
 	if err != nil {
 		log.Printf("Failed to send event to Kafka: %v", err)
 	}
