@@ -10,7 +10,7 @@ type Payment struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	OrderID   uint           `json:"order_id"`
 	Amount    float64        `json:"amount"`
-	Status    string         `json:"status"` // PENDING, PAID, FAILED
+	Status    string         `json:"status"` // PENDING, PROCESSING, PAID, FAILED
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`

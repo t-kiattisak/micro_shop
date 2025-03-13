@@ -38,7 +38,7 @@ func (h *ConsumerHandler) HandleMessage(msg *kafka.Message) {
 		if err != nil {
 			log.Printf("❌ Failed to create shipping: %v", err)
 		} else {
-			log.Printf("✅ Shipping for order %d created successfully!", event.OrderID)
+			log.Printf("Shipping for order %d created successfully!", event.OrderID)
 		}
 	}
 }

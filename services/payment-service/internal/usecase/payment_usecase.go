@@ -87,17 +87,18 @@ func (uc *PaymentUseCase) ProcessPayment(orderID uint, amount float64) error {
 		payment = &domain.Payment{
 			OrderID: orderID,
 			Amount:  amount,
-			Status:  "PENDING",
+			Status:  "PROCESSING",
 		}
 		err = uc.repo.Create(payment)
 		if err != nil {
 			return fmt.Errorf("failed to create payment record: %v", err)
 		}
-	}
+	} else {
+		payment.Status = "PROCESSING"
+		if err := uc.repo.Update(payment); err != nil {
+			return fmt.Errorf("failed to update payment status: %v", err)
+		}
 
-	payment.Status = "PAID"
-	if err := uc.repo.Update(payment); err != nil {
-		return fmt.Errorf("failed to update payment status: %v", err)
 	}
 
 	go uc.notifyOrderService(orderID)
