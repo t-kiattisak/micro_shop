@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "./proto";
+
+service PaymentService {
+    rpc UpdatePaymentStatus (UpdatePaymentStatusRequest) returns (UpdatePaymentStatusResponse);
+}
+
+message UpdatePaymentStatusRequest {
+    uint32 order_id = 1;
+    string status = 2;
+}
+
+message UpdatePaymentStatusResponse {
+    string message = 1;
+}

@@ -35,7 +35,7 @@ func CreateOrderHandler() *handler.OrderHandler {
 
 	proto.RegisterOrderServiceServer(grpcServer, grpcService)
 	go func() {
-		log.Println("✅ gRPC Service is running on port 50051...")
+		log.Println("✅ gRPC Service is running on port 50052...")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve gRPC: %v", err)
 		}

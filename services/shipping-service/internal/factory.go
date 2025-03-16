@@ -4,6 +4,7 @@ import (
 	"log"
 	"shipping-service/infrastructure"
 	"shipping-service/internal/domain"
+	"shipping-service/internal/grpcclient"
 	"shipping-service/internal/handler"
 	"shipping-service/internal/kafka"
 	"shipping-service/internal/repository"
@@ -20,8 +21,10 @@ func CreateShippingHandler() *handler.ShippingHandler {
 	}
 	log.Println("✅ Database migration completed successfully!")
 
+	paymentClient := grpcclient.NewPaymentClient()
+
 	shippingRepo := repository.NewShippingRepository(db)
-	shippingUseCase := usecase.NewShippingUseCase(shippingRepo)
+	shippingUseCase := usecase.NewShippingUseCase(shippingRepo, paymentClient)
 
 	consumerHandler := kafka.NewConsumerHandler(shippingUseCase)
 	shippingConsumer := kafka.NewShippingConsumer(consumerHandler)

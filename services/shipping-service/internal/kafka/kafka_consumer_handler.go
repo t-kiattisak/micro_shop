@@ -39,6 +39,13 @@ func (h *ConsumerHandler) HandleMessage(msg *kafka.Message) {
 			log.Printf("❌ Failed to create shipping: %v", err)
 		} else {
 			log.Printf("Shipping for order %d created successfully!", event.OrderID)
+			// update payment status
+			err := h.usecase.UpdatePaymentStatus(event.OrderID, "COMPLETED")
+			if err != nil {
+				log.Printf("Felid Update payment status order %d", event.OrderID)
+			} else {
+				log.Printf("Update payment status order %d successfully!", event.OrderID)
+			}
 		}
 	}
 }

@@ -3,15 +3,17 @@ package usecase
 import (
 	"log"
 	"shipping-service/internal/domain"
+	"shipping-service/internal/grpcclient"
 	"shipping-service/internal/repository"
 )
 
 type ShippingUseCase struct {
-	repo repository.ShippingRepository
+	repo          repository.ShippingRepository
+	paymentClient *grpcclient.PaymentClient
 }
 
-func NewShippingUseCase(repo repository.ShippingRepository) *ShippingUseCase {
-	return &ShippingUseCase{repo: repo}
+func NewShippingUseCase(repo repository.ShippingRepository, paymentClient *grpcclient.PaymentClient) *ShippingUseCase {
+	return &ShippingUseCase{repo: repo, paymentClient: paymentClient}
 }
 
 func (uc *ShippingUseCase) CreateShipping(orderID uint, carrier string, trackingNumber string) error {
@@ -30,4 +32,8 @@ func (uc *ShippingUseCase) CreateShipping(orderID uint, carrier string, tracking
 
 func (uc *ShippingUseCase) UpdateShippingStatus(orderID uint, status string) error {
 	return uc.repo.UpdateStatus(orderID, status)
+}
+
+func (uc *ShippingUseCase) UpdatePaymentStatus(orderID uint, status string) error {
+	return uc.paymentClient.UpdatePaymentStatus(orderID, status)
 }

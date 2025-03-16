@@ -38,5 +38,6 @@ func (r *paymentRepository) FindByOrderID(orderID uint) (*domain.Payment, error)
 }
 
 func (r *paymentRepository) Update(payment *domain.Payment) error {
+	// return r.db.Model(&domain.Payment{}).Where("id = ?", payment.ID).Updates(payment).Error
 	return r.db.Save(payment).Error
 }
