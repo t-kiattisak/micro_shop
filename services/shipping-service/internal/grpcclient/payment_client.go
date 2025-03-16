@@ -21,7 +21,7 @@ func NewPaymentClient() *PaymentClient {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("failed to connect to payment-service: %v", err)
+		log.Fatalf("❌ Failed to connect to payment-service: %v", err)
 	}
 	return &PaymentClient{client: proto.NewPaymentServiceClient(conn)}
 }
@@ -36,7 +36,7 @@ func (c *PaymentClient) UpdatePaymentStatus(orderID uint, status string) error {
 	})
 
 	if err != nil {
-		log.Printf("Faild to update payment status: %v", err)
+		log.Printf("❌ Failed to update payment status: %v", err)
 		return err
 	}
 
