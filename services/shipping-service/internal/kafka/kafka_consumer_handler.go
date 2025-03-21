@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"shipping-service/internal/usecase"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -30,24 +31,35 @@ func (h *ConsumerHandler) HandleMessage(msg *kafka.Message) {
 		return
 	}
 
-	if event.Status == "PAID" {
+	if event.Status != "PAID" {
+		return
+	}
+
+	const maxRetries = 3
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
 		log.Printf("🚚 Creating shipping for order %d", event.OrderID)
 		carrier := "DHL"
 		trackingNumber := generateTrackingNumber(carrier)
-		err := h.usecase.CreateShipping(event.OrderID, carrier, trackingNumber)
-		if err != nil {
-			log.Printf("❌ Failed to create shipping: %v", err)
-		} else {
-			log.Printf("Shipping for order %d created successfully!", event.OrderID)
-			// update payment status
-			err := h.usecase.UpdatePaymentStatus(event.OrderID, "COMPLETED")
+		err = h.usecase.CreateShipping(event.OrderID, carrier, trackingNumber)
+
+		if err == nil {
+			err = h.usecase.UpdatePaymentStatus(event.OrderID, "COMPLETED")
 			if err != nil {
 				log.Printf("Felid Update payment status order %d", event.OrderID)
 			} else {
 				log.Printf("Update payment status order %d successfully!", event.OrderID)
 			}
+
+			return
 		}
+
+		log.Printf("🔁 Retry %d - Failed to create shipping: %v", i+1, err)
+		time.Sleep(time.Duration(i+1) * time.Second)
 	}
+
+	PublishToDLQ("failed-payment-events", msg.Value)
 }
 
 func generateTrackingNumber(carrier string) string {

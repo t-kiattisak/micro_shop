@@ -2,6 +2,7 @@ package grpcclient
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -27,18 +28,28 @@ func NewPaymentClient() *PaymentClient {
 }
 
 func (c *PaymentClient) UpdatePaymentStatus(orderID uint, status string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	maxRetries := 3
+	var err error
 
-	_, err := c.client.UpdatePaymentStatus(ctx, &proto.UpdatePaymentStatusRequest{
-		OrderId: uint32(orderID),
-		Status:  status,
-	})
+	for i := 0; i < maxRetries; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 
-	if err != nil {
-		log.Printf("❌ Failed to update payment status: %v", err)
-		return err
+		_, err = c.client.UpdatePaymentStatus(ctx, &proto.UpdatePaymentStatusRequest{
+			OrderId: uint32(orderID),
+			Status:  status,
+		})
+
+		cancel()
+
+		if err != nil {
+			log.Printf("❌ Failed to update payment status: %v", err)
+			return nil
+		}
+
+		log.Printf("🔁 Retry %d - Failed to update payment status: %v", i+1, err)
+		time.Sleep(time.Duration(i+1) * time.Second)
+
 	}
 
-	return nil
+	return fmt.Errorf("max retries reached to update payment status for order %d: %v", orderID, err)
 }
