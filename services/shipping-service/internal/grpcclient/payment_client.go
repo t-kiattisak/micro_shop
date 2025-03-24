@@ -8,12 +8,14 @@ import (
 
 	"shipping-service/proto"
 
+	"github.com/sony/gobreaker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type PaymentClient struct {
-	client proto.PaymentServiceClient
+	client  proto.PaymentServiceClient
+	breaker *gobreaker.CircuitBreaker
 }
 
 func NewPaymentClient() *PaymentClient {
@@ -24,7 +26,15 @@ func NewPaymentClient() *PaymentClient {
 	if err != nil {
 		log.Fatalf("❌ Failed to connect to payment-service: %v", err)
 	}
-	return &PaymentClient{client: proto.NewPaymentServiceClient(conn)}
+
+	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
+		Name:        "PaymentServiceCB",
+		MaxRequests: 5,
+		Interval:    10 * time.Second,
+		Timeout:     30 * time.Second,
+	})
+
+	return &PaymentClient{client: proto.NewPaymentServiceClient(conn), breaker: cb}
 }
 
 func (c *PaymentClient) UpdatePaymentStatus(orderID uint, status string) error {
@@ -32,17 +42,19 @@ func (c *PaymentClient) UpdatePaymentStatus(orderID uint, status string) error {
 	var err error
 
 	for i := 0; i < maxRetries; i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		_, err := c.breaker.Execute(func() (interface{}, error) {
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
 
-		_, err = c.client.UpdatePaymentStatus(ctx, &proto.UpdatePaymentStatusRequest{
-			OrderId: uint32(orderID),
-			Status:  status,
+			_, err := c.client.UpdatePaymentStatus(ctx, &proto.UpdatePaymentStatusRequest{
+				OrderId: uint32(orderID),
+				Status:  status,
+			})
+			return nil, err
 		})
 
-		cancel()
-
-		if err != nil {
-			log.Printf("❌ Failed to update payment status: %v", err)
+		if err == nil {
+			log.Printf("✅ Successfully updated payment status for order %d", orderID)
 			return nil
 		}
 
