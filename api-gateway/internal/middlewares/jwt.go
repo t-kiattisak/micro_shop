@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +11,7 @@ import (
 func JWTMiddleware(secret string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
+		fmt.Printf("authHeader: %s\n", authHeader)
 		if authHeader == "" {
 			return fiber.ErrUnauthorized
 		}

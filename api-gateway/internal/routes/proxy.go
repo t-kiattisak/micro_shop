@@ -3,13 +3,26 @@ package routes
 import (
 	"api-gateway/internal/middlewares"
 	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp"
 )
 
 func SetupProxyRoutes(app *fiber.App) {
-	api := app.Group("/api", middlewares.JWTMiddleware("your-secret-key"))
+	secretKey := os.Getenv("JWT_SECRET")
+	if secretKey == "" {
+		panic("JWT_SECRET environment variable is not set")
+	}
+
+	publicAPIRoutes := app.Group("/api")
+	api := publicAPIRoutes.Group("", middlewares.JWTMiddleware(secretKey))
+
+	publicAPIRoutes.Get("/help", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"message": "This is the API Gateway. Available routes: /orders/*, /inventory/*, /payment/*, /shipping/*",
+		})
+	})
 	api.Get("/help", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "This is the API Gateway. Available routes: /orders/*, /inventory/*, /payment/*, /shipping/*",

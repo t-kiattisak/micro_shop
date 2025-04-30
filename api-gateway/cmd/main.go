@@ -5,9 +5,16 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("⚠️ Warning: No .env file found. Using system environment variables.")
+	}
+
 	app := fiber.New()
 
 	routes.SetupProxyRoutes(app)
