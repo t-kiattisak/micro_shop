@@ -25,7 +25,7 @@ type LoginRequest struct {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var body LoginRequest
 	if err := c.BodyParser(&body); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid request")
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	if body.Email != "user@example.com" || body.Password != "123456" {

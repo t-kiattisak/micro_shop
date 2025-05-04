@@ -16,6 +16,8 @@ func SetupProxyRoutes(app *fiber.App) {
 	}
 
 	publicAPIRoutes := app.Group("/api")
+	publicAPIRoutes.All("/auth/*", proxyTo("http://localhost:8087"))
+
 	api := publicAPIRoutes.Group("", middlewares.JWTMiddleware(secretKey))
 
 	publicAPIRoutes.Get("/help", func(c *fiber.Ctx) error {
@@ -31,7 +33,7 @@ func SetupProxyRoutes(app *fiber.App) {
 	api.All("/orders/*", proxyTo("http://localhost:8081"))
 	api.All("/inventory/*", proxyTo("http://localhost:8082"))
 	api.All("/payment/*", proxyTo("http://localhost:8083"))
-	api.All("/shipping/*", proxyTo("http://localhost:8084"))
+	api.All("/shipping/*", proxyTo("http://localhost:8086"))
 }
 
 func proxyTo(target string) fiber.Handler {

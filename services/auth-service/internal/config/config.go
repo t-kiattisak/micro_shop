@@ -22,7 +22,7 @@ func LoadEnv() *Config {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8085"
+		port = ":8087"
 	}
 
 	return &Config{
