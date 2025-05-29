@@ -3,6 +3,7 @@ package handler
 import (
 	"auth-service/internal/usecase"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,13 +16,18 @@ func NewAuthHandler(u usecase.AuthUsecase) *AuthHandler {
 }
 
 type registerRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,min=6"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req registerRequest
 	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -38,8 +44,8 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 }
 
 type loginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,min=6"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
@@ -47,6 +53,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+
+	validate := validator.New()
+	if err := validate.Struct(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	user, err := h.usecase.Login(req.Username, req.Password)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
