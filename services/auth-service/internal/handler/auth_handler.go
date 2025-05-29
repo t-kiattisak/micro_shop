@@ -1,50 +1,38 @@
 package handler
 
 import (
-	"time"
+	"auth-service/internal/usecase"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
-	secret []byte
+	usecase usecase.AuthUsecase
 }
 
-func NewAuthHandler(secret string) *AuthHandler {
-	return &AuthHandler{
-		secret: []byte(secret),
-	}
+func NewAuthHandler(u usecase.AuthUsecase) *AuthHandler {
+	return &AuthHandler{usecase: u}
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
+type registerRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var body LoginRequest
-	if err := c.BodyParser(&body); err != nil {
+func (h *AuthHandler) Register(c *fiber.Ctx) error {
+	var req registerRequest
+	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if body.Email != "user@example.com" || body.Password != "123456" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":  "user-id-123",
-		"role": "user",
-		"exp":  time.Now().Add(time.Hour * 1).Unix(),
-	})
-	tokenStr, err := token.SignedString(h.secret)
+	user, err := h.usecase.Register(req.Username, req.Password)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Could not sign token")
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	return c.JSON(fiber.Map{
-		"access_token": tokenStr,
-		"token_type":   "Bearer",
-		"expires_in":   3600,
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"id":       user.ID,
+		"username": user.Username,
+		"role":     user.Role,
 	})
 }
